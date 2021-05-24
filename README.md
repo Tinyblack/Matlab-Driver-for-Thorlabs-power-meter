@@ -2,7 +2,7 @@
 
 This is a Matlab class to control Thorlabs power meters
 
-[Link](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10562) to a typical Thorlabs Power Meter
+[Link](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10562) to a typical Thorlabs Power Meter. (For Central File Exchange: The file image comes from this link as well.)
 
 ## User Instructions:
 
