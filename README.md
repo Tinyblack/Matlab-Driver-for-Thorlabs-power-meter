@@ -36,10 +36,10 @@ test_meter.disconnect;                    % Disconnect and release resource
 
 ## Author Information:
 
-Author: Zimo Zhao
-Dept. Engineering Science, University of Oxford, Oxford OX1 3PJ, UK
-Email: zimo.zhao@emg.ox.ac.uk (please email issues and bugs)
-Website: https://eng.ox.ac.uk/smp/
+* Author: Zimo Zhao
+* Dept. Engineering Science, University of Oxford, Oxford OX1 3PJ, UK
+* Email: zimo.zhao@emg.ox.ac.uk (please email issues and bugs)
+* Website: https://eng.ox.ac.uk/smp/
 
 ## Known Issues:
 
