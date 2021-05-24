@@ -10,7 +10,7 @@ classdef ThorlabsPowerMeter < handle
     %   2. Read the manual in the installation folder or the sofware help page
     %   https://www.thorlabs.com/software/MUC/OPM/v3.0/TL_OPM_V3.0_web-secured.pdf
     %   3. Following the instructions in section 9: Write Your Own Application
-    %   4. This scripts need only the .net wrapper dll so follow the
+    %   4. This scripts need only the .net wrapper dll so follow the instruction for C#
     %   5. Edit MOTORPATHDEFAULT below to point to the location of the DLLs
     %   6. Connect your Power Meter with sensor to the PC USB port and power
     %      it on.
