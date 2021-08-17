@@ -45,10 +45,16 @@ classdef ThorlabsPowerMeter < handle
     %
     %   Version History:
     %   1.00 ----- 21 May 2021 ----- Initial Release
+    %   1.01 ----- 17 Aug 2021 ----- Clarify the way of utilizing *.dll files
     
     properties (Constant, Hidden)
         % Path to .net *.dll files (edit as appropriate)
+        % pwd --- Current working directory of this file
+        % (depending on the location where you put this file)
+        % This line points to folder 'Thorlabs_DotNet_dll' under the same directory
+        % Comment out this line and uncomment next line to use customized dll file directory
         METERPATHDEFAULT=[pwd '\Thorlabs_DotNet_dll\'];
+        %METERPATHDEFAULT=['---Your---Own---Path---'];
         
         % *.dll files to be loaded
         TLPMDLL='Thorlabs.TLPM_64.Interop.dll';

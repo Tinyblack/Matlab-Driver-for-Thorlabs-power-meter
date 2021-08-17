@@ -12,7 +12,9 @@ This is a Matlab class to control Thorlabs power meters
 2. Read the manual in the installation folder or the [software help page](https://www.thorlabs.com/software/MUC/OPM/v3.0/TL_OPM_V3.0_web-secured.pdf).
 3. Following the instructions in section 9: **Write Your Own Application**.
 4. This scripts need only the .net wrapper dll so follow the instruction for C#.
-5. Edit MOTORPATHDEFAULT below to point to the location of the DLLs.
+5. Two ways of utilising the dynamic link library (*.dll) files provided by Thorlabs:
+   1. Copy *.dll files needed to ''Thorlabs_DotNet_dll'' folder (e.g. Thorlabs.TLPM_64.Interop.dll).
+   2. Edit MOTORPATHDEFAULT below to point to the location of the DLLs.
 6. Connect your Power Meter with sensor to the PC USB port and power it on.
 
 ## For developers:
@@ -51,3 +53,5 @@ test_meter.disconnect;                    % Disconnect and release resource
 ## Version History:
 
 1.00 ----- 21 May 2021 ----- Initial Release
+
+1.01 ----- 17 Aug 2021 ----- Clarify the way of utilizing *.dll files

@@ -1,5 +1,6 @@
 *.dll
-Thorlabs_DotNet_dll
+Thorlabs_DotNet_dll\*.dll
 *.asv
 *.backup
 *.jpg
+*.pdf
