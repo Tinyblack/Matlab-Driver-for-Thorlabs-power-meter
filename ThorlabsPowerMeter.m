@@ -344,8 +344,8 @@ classdef ThorlabsPowerMeter < handle
                 otherwise
                     warning('Unknown');
             end
-            [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
-            obj.meterVoltageUnit='V';
+%             [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
+%             obj.meterVoltageUnit='V';
         end
         
         function darkAdjust(obj)
