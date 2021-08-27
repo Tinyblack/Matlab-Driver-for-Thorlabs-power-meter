@@ -1,4 +1,4 @@
-classdef ThorlabsPowerMeter < handle
+classdef ThorlabsPowerMeter < matlab.mixin.Copyable
     %ThorlabsPowerMeter Matlab class to control Thorlabs power meters
     %   Driver for Thorlabs power meter
     %   It is a 'wrapper' to control Thorlabs devices via the Thorlabs .NET
@@ -65,6 +65,7 @@ classdef ThorlabsPowerMeter < handle
         % These properties are within Matlab wrapper
         isConnected=false;          % Flag set if device connected
         resourceName;               % USB resource name
+        resourceNameConnected;      % USB resource name
         modelName;                  % Power meter model name
         serialNumber;               % Power meter serial number
         Manufacturer;               % Power meter manufacturer
@@ -84,7 +85,7 @@ classdef ThorlabsPowerMeter < handle
         meterVoltageUnit;           % Voltage reading unit
     end
     
-    properties (Hidden)
+    properties %(Hidden)
         % These are properties within the .NET environment.
         deviceNET;                  % Device object within .NET
     end
@@ -101,12 +102,14 @@ classdef ThorlabsPowerMeter < handle
                 obj.isConnected=false;
                 warning('No Resource is found, please check the connection.');
             else
-                fprintf('Found the following device(s):\r');
                 obj.numberOfResourceName=size(obj.resourceName,1);
-                for i=size(obj.resourceName,1):1:1
-                    fprintf('\t\t%s\r',obj.resourceName(i,:));
+                fprintf('Found the following %d device(s):\r',obj.numberOfResourceName);
+                for i=1:1:size(obj.resourceName,1)
+                    fprintf('\t\t%d) %s\r',i,obj.resourceName(i,:));
                 end
-                fprintf('Use .connect(resourceName) to connect.\r\r');
+                fprintf('Use <Your_Meter_List>.connect(resourceName) to connect a single/the first device.\r');
+                fprintf('or\r');
+                fprintf('Use <Your_Meter_List>.connect(resourceName,index) to connect multiple devices.\r\r');
             end
         end
         
@@ -115,19 +118,19 @@ classdef ThorlabsPowerMeter < handle
             %   Usage: obj.delete;
             %   This function disconnects the device and exits.
             if obj.isConnected
-                warning('Program Terminated with Device Connected.\r');
                 try
+                    warning('Program Terminated with Device Connected.');
                     obj.disconnect;
                 catch
-                    warning('Unable to release the device.\r');
+                    warning('Failed to release the device.');
                 end
             else % Cannot disconnect because device is not connected
-                fprintf('Device Released Properly.\r');
+                %fprintf('Device Released Properly.\r\r');
             end
             
         end
         
-        function connect(obj,resource,ID_Query,Reset_Device,resource_index)
+        function obj_copy=connect(obj,resource,resource_index,ID_Query,Reset_Device)
             %CONNECT Connect to the specified resource.
             %   Usage: obj.connect(resource);
             %   By default, it will connect to the first resource on the
@@ -139,33 +142,43 @@ classdef ThorlabsPowerMeter < handle
             arguments
                 obj
                 resource
+                resource_index (1,1) {mustBeNumeric} = 1 % (default) First resource
                 ID_Query (1,1) {mustBeNumeric} = 1 % (default) Query the ID
                 Reset_Device (1,1) {mustBeNumeric} = 1 % (default) Reset
-                resource_index (1,1) {mustBeNumeric} = 1 % (default) First resource
             end
-            obj.listdevices;
-            if ~obj.isConnected
+            %obj.listdevices;
+            if ~obj.isConnected && obj.DeviceAvailable(resource_index)
                 try
+                    obj_copy=copy(obj);
                     % The core method to create the power meter instance
-                    obj.deviceNET=Thorlabs.TLPM_64.Interop.TLPM(resource(resource_index,:),logical(ID_Query),logical(Reset_Device));
+                    obj_copy.deviceNET=Thorlabs.TLPM_64.Interop.TLPM(resource(resource_index,:),logical(ID_Query),logical(Reset_Device));
                     fprintf('Successfully connect the device:\r\t\t%s\r',resource(resource_index,:));
-                    obj.isConnected=true;
+                    obj_copy.resourceNameConnected=resource(resource_index,:);
+                    obj_copy.isConnected=true;     
+                    obj_copy.modelName=obj.modelName{resource_index};
+                    obj_copy.serialNumber=obj.serialNumber(resource_index,:); 
+                    obj_copy.Manufacturer=obj_copy.Manufacturer(resource_index,:); 
+                    obj.DeviceAvailable(resource_index)=0;
+                    obj.isConnected=false;
                 catch
-                    error('Fail to connect the device.');
+                    error('Failed to connect the device.');
                 end
             else
                 warning('Device is already connected.');
+                obj_copy=[];
             end
         end
-        
+          
         function disconnect(obj)
             %DISCONNECT Disconnect the specified resource.
             %   Usage: obj.disconnect;
             %   Disconnect the specified resource.
             if obj.isConnected
+                fprintf('\tDisconnecting ... %s\r',obj.resourceNameConnected);
                 try
                     obj.deviceNET.Dispose();  %Disconnect the device
                     obj.isConnected=false;
+                    fprintf('\tDevice Released Properly.\r\r');
                 catch
                     warning('Unable to disconnect device.');
                 end
@@ -221,8 +234,27 @@ classdef ThorlabsPowerMeter < handle
             %SETATTENUATION Set the attenuation.
             %   Usage: obj.setAttenuation(Attenuation);
             %   Set the attenuation. 
-            obj.deviceNET.setAttenuation(Attenuation);
-            fprintf('Set Attenuation to %.4f dB, %.2fx\r',Attenuation,10^(Attenuation/20));
+            if any(strcmp(obj.modelName,{'PM100A', 'PM100D', 'PM100USB', 'PM200', 'PM400'}))
+                [~,Attenuation_MIN]=obj.deviceNET.getAttenuation(1);
+                [~,Attenuation_MAX]=obj.deviceNET.getAttenuation(2);
+                if (Attenuation_MIN<=Attenuation && Attenuation<=Attenuation_MAX)
+                    obj.deviceNET.setAttenuation(Attenuation);
+                else
+                    if Attenuation_MIN>Attenuation
+                        warning('Exceed minimum Attenuation! Force to the minimum.');
+                        Attenuation=Attenuation_MIN;
+                        obj.deviceNET.setAttenuation(Attenuation);
+                    end
+                    if Attenuation>Attenuation_MAX
+                        warning('Exceed maximum Attenuation! Force to the maximum.');
+                        Attenuation=Attenuation_MAX;
+                        obj.deviceNET.setAttenuation(Attenuation);
+                    end
+                end
+                fprintf('Set Attenuation to %.4f dB, %.4fx\r',Attenuation,10^(Attenuation/20));
+            else
+                warning('This command is not supported on %s.',obj.modelName);
+            end
         end
         
         function sensorInfo=sensorInfo(obj)
@@ -328,13 +360,14 @@ classdef ThorlabsPowerMeter < handle
             sensorInfo.Flags=obj.sensorFlags;
         end
         
-        function updateReading(obj)
+        function updateReading(obj,period)
             %UPDATEREADING Update the reading from power meter.
             %   Usage: obj.updateReading;
             %   Retrive the reading from power meter and store it in the 
             %   properties of the object 
             
             [~,obj.meterPowerReading]=obj.deviceNET.measPower;
+            pause(period)
             [~,meterPowerUnit_]=obj.deviceNET.getPowerUnit;
             switch meterPowerUnit_
                 case 0
@@ -344,15 +377,17 @@ classdef ThorlabsPowerMeter < handle
                 otherwise
                     warning('Unknown');
             end
-%             [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
-%             obj.meterVoltageUnit='V';
+%             if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
+%                 [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
+%                 obj.meterVoltageUnit='V';
+%             end
         end
         
         function darkAdjust(obj)
             %DARKADJUST (PM400 Only) Initiate the Zero value measurement.
             %   Usage: obj.darkAdjust;
             %   Start the measurement of Zero value. 
-            if strcmp(obj.modelName,'PM400')
+            if any(strcmp(obj.modelName,'PM400'))
                 obj.deviceNET.startDarkAdjust;
                 [~,DarkState]=obj.deviceNET.getDarkAdjustState;
                 while DarkState
@@ -368,7 +403,7 @@ classdef ThorlabsPowerMeter < handle
             %   Usage: [DarkOffset_Voltage,DarkOffset_Voltage_Unit]=obj.getDarkOffset;
             %   Retrive the Zero value from power meter and store it in the 
             %   properties of the object 
-            if strcmp(obj.modelName,'PM400')
+            if any(strcmp(obj.modelName,'PM400'))
                 [~,DarkOffset_Voltage]=obj.deviceNET.getDarkOffset;
                 DarkOffset_Voltage_Unit='V';
                 obj.DarkOffset_Voltage=DarkOffset_Voltage;
@@ -393,11 +428,11 @@ classdef ThorlabsPowerMeter < handle
                 descr{i}.Capacity=2048;
             end
             if count>0
-                for i=count-1:1:0
+                for i=0:1:count-1
                     findResource.getRsrcName(i,descr{1});
-                    [~,Device_Available]=findResource.getRsrcInfo(0, descr{2}, descr{3}, descr{4});
+                    [~,Device_Available]=findResource.getRsrcInfo(i, descr{2}, descr{3}, descr{4});
                     resourceNameArray(i+1,:)=char(descr{1}.ToString);
-                    modelNameArray(i+1,:)=char(descr{2}.ToString);
+                    modelNameArray{i+1}=char(descr{2}.ToString);
                     serialNumberArray(i+1,:)=char(descr{3}.ToString);
                     ManufacturerArray(i+1,:)=char(descr{4}.ToString);
                     DeviceAvailableArray(i+1,:)=Device_Available;

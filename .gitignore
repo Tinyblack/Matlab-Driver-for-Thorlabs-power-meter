@@ -4,3 +4,4 @@ Thorlabs_DotNet_dll\*.dll
 *.backup
 *.jpg
 *.pdf
+*.cpp

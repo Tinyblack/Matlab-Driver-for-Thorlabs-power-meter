@@ -2,9 +2,9 @@
 
 # Matlab Driver for Thorlabs Power Meter
 
-This is a Matlab class to control Thorlabs power meters
+This is a Matlab class to control Thorlabs power meters. (Multiple meters are supported)
 
-[Link](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10562) to a typical Thorlabs Power Meter. (For Central File Exchange: The file image comes from this link as well.)
+[Link](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10562) to a typical Thorlabs Power Meter. 
 
 ## User Instructions:
 
@@ -19,39 +19,86 @@ This is a Matlab class to control Thorlabs power meters
 
 ## For developers:
 
-1. The definition for all the classes can be found in the C# exmple provided by Thorlab. (Shipped together with the software.)
+1. The definition for all the classes can be found in the C# exmple provided by Thorlab. (Shipped together with the software.) [The typical path for x64 system is C:\Program Files (x86)\IVI Foundation\VISA\WinNT\TLPM\Example]
 
-## Example Usage:
+## Example Single Usage:
 
 ```matlab
+close all
 clear
-test_meter=ThorlabsPowerMeter;            % Initiate the object
-DeviceDescription=test_meter.listdevices; % List available device(s)
-test_meter.connect(DeviceDescription);    % Connect selected device
-test_meter.setWaveLength(780);            % Set sensor wavelength
-test_meter.setDispBrightness(0.5);        % Set display brightness
-test_meter.setAttenuation(0);             % Set Attenuation
-test_meter.sensorInfo;                    % Retrive the sensor info
-test_meter.darkAdjust;                    % (PM400 ONLY)
-test_meter.getDarkOffset;                 % (PM400 ONLY)
-test_meter.updateReading;                 % Update the reading
-test_meter.disconnect;                    % Disconnect and release resource
+meter_list=ThorlabsPowerMeter;                              % Initiate the meter_list
+DeviceDescription=meter_list.listdevices;                   % List available device(s)
+test_meter=meter_list.connect(DeviceDescription);           % Connect single/the first devices
+%or                                                         % Connect single/the first devices
+%test_meter=meter_list.connect(DeviceDescription,1);        % Connect single/the first devices
+test_meter.setWaveLength(635);                              % Set sensor wavelength
+test_meter.setDispBrightness(0.3);                          % Set display brightness
+test_meter.setAttenuation(0);                               % Set Attenuation
+test_meter.sensorInfo;                                      % Retrive the sensor info
+% test_meter.darkAdjust;                                    % (PM400 ONLY)
+% test_meter.getDarkOffset;                                 % (PM400 ONLY)
+for i=1:1:100   
+    test_meter.updateReading(0.5);                          % Update the reading (with interal period of 0.5s)
+    fprintf('%.10f%c\r',test_meter.meterPowerReading,test_meter.meterPowerUnit);
+end
+test_meter.disconnect;                                      % Disconnect and release
+```
+
+## Example Multiple Usage:
+
+```matlab
+close all
+clear
+meter_list=ThorlabsPowerMeter;                              % Initiate the meter_list
+DeviceDescription=meter_list.listdevices;                   % List available device(s)
+test_meter_A=meter_list.connect(DeviceDescription,1);       % Connect multiple devices
+test_meter_B=meter_list.connect(DeviceDescription,2);       % Connect multiple devices
+test_meter_A.setWaveLength(635);                            % Set sensor wavelength
+test_meter_B.setWaveLength(780);                            % Set sensor wavelength
+test_meter_A.setDispBrightness(0.3);                        % Set display brightness
+test_meter_B.setDispBrightness(0.7);                        % Set display brightness
+test_meter_A.setAttenuation(-10);                           % Set Attenuation
+test_meter_B.setAttenuation(10);                            % Set Attenuation
+% test_meter_A.sensorInfo;                                  % Retrive the sensor info
+% test_meter_B.sensorInfo;                                  % Retrive the sensor info
+% test_meter_A.darkAdjust;                                  % (PM400 ONLY)
+% test_meter_A.getDarkOffset;                               % (PM400 ONLY)
+% test_meter_B.darkAdjust;                                  % (PM400 ONLY)
+% test_meter_B.getDarkOffset;                               % (PM400 ONLY)
+for i=1:1:100   
+    test_meter_A.updateReading(0.5);                        % Update the reading (with interal period of 0.5s)
+    fprintf('%.10f%c\r',test_meter_A.meterPowerReading,test_meter_A.meterPowerUnit);
+end
+fprintf('\r');
+for i=1:1:100
+    test_meter_B.updateReading(0.5);                        % Update the reading (with interal period of 0.5s)
+    fprintf('%.10f%c\r',test_meter_B.meterPowerReading,test_meter_B.meterPowerUnit);
+end
+test_meter_A.disconnect;                                    % Disconnect and release
+test_meter_B.disconnect;                                    % Disconnect and release
 ```
 
 ## Author Information:
 
 * Author: Zimo Zhao
 * Dept. Engineering Science, University of Oxford, Oxford OX1 3PJ, UK
-* Email: zimo.zhao@emg.ox.ac.uk (please email issues and bugs)
+* Email: zimo.zhao@emg.ox.ac.uk
 * Website: https://eng.ox.ac.uk/smp/
+* Reporting issues and bugs to my Github repository is more welcomed.
 
 ## Known Issues:
 
-1. This program is not yet suitable for multiple power meters connection.
-2. More functions to be added in the future.
+1. If the measuring period is too small, some errors may occur. If it happens, restart MATLAB as well as power meters.
+
+## TODO
+
+1. More functions to be added in the future.
+2. Test the codes on more power meters (Currently, PM100D and PM400 are tested.)
 
 ## Version History:
 
 1.00 ----- 21 May 2021 ----- Initial Release
 
 1.01 ----- 17 Aug 2021 ----- Clarify the way of utilizing *.dll files
+
+2.00 ----- 27 Aug 2021 ----- Support multiple power meters connection
