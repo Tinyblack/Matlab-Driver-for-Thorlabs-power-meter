@@ -82,7 +82,7 @@ test_meter_B.disconnect;                                    % Disconnect and rel
 
 * Author: Zimo Zhao
 * Dept. Engineering Science, University of Oxford, Oxford OX1 3PJ, UK
-* Email: zimo.zhao@emg.ox.ac.uk
+* Email: zimo.zhao@eng.ox.ac.uk
 * Website: https://eng.ox.ac.uk/smp/
 * Reporting issues and bugs to my Github repository is more welcomed.
 
