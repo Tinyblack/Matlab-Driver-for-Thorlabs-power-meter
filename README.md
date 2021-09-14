@@ -94,6 +94,7 @@ test_meter_B.disconnect;                                    % Disconnect and rel
 
 1. More functions to be added in the future.
 2. Test the codes on more power meters (Currently, PM100D and PM400 are tested.)
+3. Add default values to some functions
 
 ## Version History:
 
