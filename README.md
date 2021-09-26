@@ -4,7 +4,7 @@
 
 This is a Matlab class to control Thorlabs power meters. (Multiple meters are supported)
 
-[Link](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10562) to a typical Thorlabs Power Meter. 
+[Link](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10562) to a typical Thorlabs Power Meter.
 
 ## User Instructions:
 
@@ -102,3 +102,5 @@ test_meter_B.disconnect;                                    % Disconnect and rel
 1.01 ----- 17 Aug 2021 ----- Clarify the way of utilizing *.dll files
 
 2.00 ----- 27 Aug 2021 ----- Support multiple power meters connection
+
+2.01 ----- 26 Sep 2021 ----- Add force connection function to bypass the device availability check.

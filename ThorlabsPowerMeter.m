@@ -134,7 +134,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
             %CONNECT Connect to the specified resource.
             %   Usage: obj.connect(resource);
             %   By default, it will connect to the first resource on the
-            %   list [resource_index=1] with ID query [ID_Query=1] and 
+            %   list [resource_index=1] with ID query [ID_Query=1] and
             %   reset [Reset_Device=1];
             %   Use
             %   obj.connect(resource,ID_Query,Reset_Device,resource_index)
@@ -154,10 +154,10 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                     obj_copy.deviceNET=Thorlabs.TLPM_64.Interop.TLPM(resource(resource_index,:),logical(ID_Query),logical(Reset_Device));
                     fprintf('Successfully connect the device:\r\t\t%s\r',resource(resource_index,:));
                     obj_copy.resourceNameConnected=resource(resource_index,:);
-                    obj_copy.isConnected=true;     
+                    obj_copy.isConnected=true;
                     obj_copy.modelName=obj.modelName{resource_index};
-                    obj_copy.serialNumber=obj.serialNumber(resource_index,:); 
-                    obj_copy.Manufacturer=obj_copy.Manufacturer(resource_index,:); 
+                    obj_copy.serialNumber=obj.serialNumber(resource_index,:);
+                    obj_copy.Manufacturer=obj_copy.Manufacturer(resource_index,:);
                     obj.DeviceAvailable(resource_index)=0;
                     obj.isConnected=false;
                 catch
@@ -168,7 +168,42 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                 obj_copy=[];
             end
         end
-          
+        
+        function obj_copy=connectForce(obj,resource,resource_index,ID_Query,Reset_Device)
+            %CONNECT Force connect to the specified resource regradless of it status.
+            %   Usage: obj.connectForce(resource);
+            %   By default, it will connect to the first resource on the
+            %   list [resource_index=1] with ID query [ID_Query=1] and
+            %   reset [Reset_Device=1] regradless of it status (Availability);
+            %   Use
+            %   obj.connectForce(resource,ID_Query,Reset_Device,resource_index)
+            %   to modify the default values.
+            arguments
+                obj
+                resource
+                resource_index (1,1) {mustBeNumeric} = 1 % (default) First resource
+                ID_Query (1,1) {mustBeNumeric} = 1 % (default) Query the ID
+                Reset_Device (1,1) {mustBeNumeric} = 1 % (default) Reset
+            end
+            %obj.listdevices;
+            try
+                obj_copy=copy(obj);
+                % The core method to create the power meter instance
+                warning('[Force Connection. The actual device may not be connected]\n');
+                obj_copy.deviceNET=Thorlabs.TLPM_64.Interop.TLPM(resource(resource_index,:),logical(ID_Query),logical(Reset_Device));
+                fprintf('Successfully connect the device:\r\t\t%s\r',resource(resource_index,:));
+                obj_copy.resourceNameConnected=resource(resource_index,:);
+                obj_copy.isConnected=true;
+                obj_copy.modelName=obj.modelName{resource_index};
+                obj_copy.serialNumber=obj.serialNumber(resource_index,:);
+                obj_copy.Manufacturer=obj_copy.Manufacturer(resource_index,:);
+                obj.DeviceAvailable(resource_index)=0;
+                obj.isConnected=false;
+            catch
+                error('Failed to connect the device.');
+            end
+        end
+        
         function disconnect(obj)
             %DISCONNECT Disconnect the specified resource.
             %   Usage: obj.disconnect;
@@ -233,7 +268,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
         function setAttenuation(obj,Attenuation)
             %SETATTENUATION Set the attenuation.
             %   Usage: obj.setAttenuation(Attenuation);
-            %   Set the attenuation. 
+            %   Set the attenuation.
             if any(strcmp(obj.modelName,{'PM100A', 'PM100D', 'PM100USB', 'PM200', 'PM400'}))
                 [~,Attenuation_MIN]=obj.deviceNET.getAttenuation(1);
                 [~,Attenuation_MAX]=obj.deviceNET.getAttenuation(2);
@@ -261,7 +296,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
             %SENSORINFO Retrive the sensor information.
             %   Usage: obj.sensorInfo;
             %   Read the information of sensor connected and store it in
-            %   the properties of the object.     
+            %   the properties of the object.
             for i=1:1:3
                 descr{i}=System.Text.StringBuilder;
                 descr{i}.Capacity=1024;
@@ -363,8 +398,8 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
         function updateReading(obj,period)
             %UPDATEREADING Update the reading from power meter.
             %   Usage: obj.updateReading;
-            %   Retrive the reading from power meter and store it in the 
-            %   properties of the object 
+            %   Retrive the reading from power meter and store it in the
+            %   properties of the object
             
             [~,obj.meterPowerReading]=obj.deviceNET.measPower;
             pause(period)
@@ -377,16 +412,16 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                 otherwise
                     warning('Unknown');
             end
-%             if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
-%                 [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
-%                 obj.meterVoltageUnit='V';
-%             end
+            %             if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
+            %                 [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
+            %                 obj.meterVoltageUnit='V';
+            %             end
         end
         
         function darkAdjust(obj)
             %DARKADJUST (PM400 Only) Initiate the Zero value measurement.
             %   Usage: obj.darkAdjust;
-            %   Start the measurement of Zero value. 
+            %   Start the measurement of Zero value.
             if any(strcmp(obj.modelName,'PM400'))
                 obj.deviceNET.startDarkAdjust;
                 [~,DarkState]=obj.deviceNET.getDarkAdjustState;
@@ -401,8 +436,8 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
         function [DarkOffset_Voltage,DarkOffset_Voltage_Unit]=getDarkOffset(obj)
             %GETDARKOFFSET (PM400 Only) Read the Zero value from powermeter.
             %   Usage: [DarkOffset_Voltage,DarkOffset_Voltage_Unit]=obj.getDarkOffset;
-            %   Retrive the Zero value from power meter and store it in the 
-            %   properties of the object 
+            %   Retrive the Zero value from power meter and store it in the
+            %   properties of the object
             if any(strcmp(obj.modelName,'PM400'))
                 [~,DarkOffset_Voltage]=obj.deviceNET.getDarkOffset;
                 DarkOffset_Voltage_Unit='V';
@@ -419,7 +454,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
         function [resourceName,modelName,serialNumber,Manufacturer,DeviceAvailable]=listdevices()  % Read a list of resource names
             %LISTDEVICES List available resources.
             %   Usage: obj.listdevices;
-            %   Retrive all the available devices and return it back. 
+            %   Retrive all the available devices and return it back.
             ThorlabsPowerMeter.loaddlls; % Load DLLs
             findResource=Thorlabs.TLPM_64.Interop.TLPM(System.IntPtr);  % Build device list
             [~,count]=findResource.findRsrc; % Get device list
