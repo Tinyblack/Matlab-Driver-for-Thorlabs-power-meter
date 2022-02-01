@@ -27,7 +27,7 @@ This is a Matlab class to control Thorlabs power meters. (Multiple meters are su
 close all
 clear
 meter_list=ThorlabsPowerMeter;                              % Initiate the meter_list
-DeviceDescription=meter_list.listdevices;                   % List available device(s)
+DeviceDescription=meter_list.listdevices;               	% List available device(s)
 test_meter=meter_list.connect(DeviceDescription);           % Connect single/the first devices
 %or                                                         % Connect single/the first devices
 %test_meter=meter_list.connect(DeviceDescription,1);        % Connect single/the first devices
@@ -35,11 +35,20 @@ test_meter.setWaveLength(635);                              % Set sensor wavelen
 test_meter.setDispBrightness(0.3);                          % Set display brightness
 test_meter.setAttenuation(0);                               % Set Attenuation
 test_meter.sensorInfo;                                      % Retrive the sensor info
-% test_meter.darkAdjust;                                    % (PM400 ONLY)
-% test_meter.getDarkOffset;                                 % (PM400 ONLY)
+test_meter.setPowerAutoRange(1);                            % Set Autorange
+% or
+% test_meter.setPowerRange(0.01);                           % Set manual range
+pause(5)                                                    % Pause the program a bit to allow the power meter to autoadjust
+test_meter.setAverageTime(0.01);                            % Set average time for the measurement
+test_meter.setTimeout(1000);                                % Set timeout value 
+% test_meter.darkAdjust;                                      % (PM400 ONLY)
+% test_meter.getDarkOffset;                                   % (PM400 ONLY)
 for i=1:1:100   
-    test_meter.updateReading(0.5);                          % Update the reading (with interal period of 0.5s)
+    test_meter.updateReading(0.5);                          % Update the power reading(with interal period of 0.5s)
     fprintf('%.10f%c\r',test_meter.meterPowerReading,test_meter.meterPowerUnit);
+    test_meter.updateReading_V(0.5);                        % Update the power reading with voltage reading(with interal period of 0.5s)
+    fprintf('%.10f%c\r',test_meter.meterPowerReading,test_meter.meterPowerUnit);
+    fprintf('\t%.10f%c\r',test_meter.meterVoltageReading,test_meter.meterVoltageUnit);
 end
 test_meter.disconnect;                                      % Disconnect and release
 ```
@@ -105,3 +114,5 @@ test_meter_B.disconnect;                                    % Disconnect and rel
 2.00 ----- 27 Aug 2021 ----- Support multiple power meters connection
 
 2.01 ----- 26 Sep 2021 ----- Add force connection function to bypass the device availability check.
+
+3.00 ----- 01 Feb 2022 ----- Add functions: setPowerRange, setPowerAutoRange, setTimeout, setAverageTime, updateReading_V

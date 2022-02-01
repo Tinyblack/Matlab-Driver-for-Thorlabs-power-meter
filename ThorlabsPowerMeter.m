@@ -35,7 +35,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
     %
     %   Author: Zimo Zhao
     %   Dept. Engineering Science, University of Oxford, Oxford OX1 3PJ, UK
-    %   Email: zimo.zhao@emg.ox.ac.uk (please email issues and bugs)
+    %   Email: zimo.zhao@eng.ox.ac.uk (please email issues and bugs)
     %   Website: https://eng.ox.ac.uk/smp/
     %
     %   Known Issues:
@@ -222,6 +222,38 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
             end
         end
         
+        function setAverageTime(obj,AverageTime)
+            %SETAVERAGETIME Set the sensor average time.
+            %   Usage: obj.setAverageTime(AverageTime);
+            %   Set the sensor average time. This method will check the input
+            %   and force it to a vaild value if it is out of the range.
+            [~,AverageTime_MIN]=obj.deviceNET.getAvgTime(1);
+            [~,AverageTime_MAX]=obj.deviceNET.getAvgTime(2);
+            if (AverageTime_MIN<=AverageTime && AverageTime<=AverageTime_MAX)
+                obj.deviceNET.setAvgTime(AverageTime);
+                fprintf('\tSet Average Time to %.4fs\r',AverageTime);
+            else
+                if AverageTime_MIN>AverageTime
+                    warning('Exceed minimum average time! Force to the minimum.');
+                    obj.deviceNET.setAvgTime(AverageTime_MIN);
+                    fprintf('\tSet Average Time to %.4fs\r',AverageTime_MIN);
+                end
+                if AverageTime>AverageTime_MAX
+                    warning('Exceed maximum average time! Force to the maximum.');
+                    obj.deviceNET.setAvgTime(AverageTime_MAX);
+                    fprintf('\tSet Average Time to %.4fs\r',AverageTime_MAX);
+                end
+            end
+        end
+        
+        function setTimeout(obj,Timeout)
+            %SETTIMEOUT Set the power meter timeout value.
+            %   Usage: obj.setTimeout(Timeout);
+            %   Set the sensor timeout value.
+            obj.deviceNET.setTimeoutValue(Timeout);
+            fprintf('\tSet Timeout Value to %.4fms\r',Timeout);
+        end
+        
         function setWaveLength(obj,wavelength)
             %SETWAVELENGTH Set the sensor wavelength.
             %   Usage: obj.setWaveLength(wavelength);
@@ -231,14 +263,45 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
             [~,wavelength_MAX]=obj.deviceNET.getWavelength(2);
             if (wavelength_MIN<=wavelength && wavelength<=wavelength_MAX)
                 obj.deviceNET.setWavelength(wavelength);
+                fprintf('\tSet wavelength to %.4f\r',wavelength);
             else
                 if wavelength_MIN>wavelength
                     warning('Exceed minimum wavelength! Force to the minimum.');
                     obj.deviceNET.setWavelength(wavelength_MIN);
+                    fprintf('\tSet wavelength to %.4f\r',wavelength_MIN);
                 end
                 if wavelength>wavelength_MAX
                     warning('Exceed maximum wavelength! Force to the maximum.');
                     obj.deviceNET.setWavelength(wavelength_MAX);
+                    fprintf('\tSet wavelength to %.4f\r',wavelength_MAX);
+                end
+            end
+        end
+        
+        function setPowerAutoRange(obj,enable)
+            obj.deviceNET.getPowerRange(enable);
+        end
+        
+        function setPowerRange(obj,range)
+            %SETPOWERRANGE Set the sensor power range.
+            %   Usage: obj.setPowerRange(range);
+            %   Set the sensor power range. This method will check the input
+            %   and force it to a vaild value if it is out of the range.
+            [~,range_MIN]=obj.deviceNET.getPowerRange(1);
+            [~,range_MAX]=obj.deviceNET.getPowerRange(2);
+            if (range_MIN<=range && range<=range_MAX)
+                obj.deviceNET.setPowerRange(range);
+                fprintf('\tSet range to %.4f\r',range);
+            else
+                if range_MIN>range
+                    warning('Exceed minimum range! Force to the minimum.');
+                    obj.deviceNET.setPowerRange(range_MIN);
+                    fprintf('\tSet range to %.4f\r',range_MIN);
+                end
+                if range>range_MAX
+                    warning('Exceed maximum range! Force to the maximum.');
+                    obj.deviceNET.setPowerRange(range_MAX);
+                    fprintf('\tSet range to %.4f\r',range_MIN);
                 end
             end
         end
@@ -400,7 +463,6 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
             %   Usage: obj.updateReading;
             %   Retrive the reading from power meter and store it in the
             %   properties of the object
-            
             [~,obj.meterPowerReading]=obj.deviceNET.measPower;
             pause(period)
             [~,meterPowerUnit_]=obj.deviceNET.getPowerUnit;
@@ -412,11 +474,36 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                 otherwise
                     warning('Unknown');
             end
-            %             if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
-            %                 [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
-            %                 obj.meterVoltageUnit='V';
-            %             end
+%             if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
+%                 [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
+%                 obj.meterVoltageUnit='V';
+%             end
         end
+        
+        function updateReading_V(obj,period)
+            %UPDATEREADING_V Update the reading from power meter with Voltage reading.
+            %   Usage: obj.updateReading;
+            %   Retrive the reading from power meter and store it in the
+            %   properties of the object
+            %   Only for PM100D, PM100A, PM100USB, PM160T, PM200, PM400
+            [~,obj.meterPowerReading]=obj.deviceNET.measPower;
+            pause(period)
+            [~,meterPowerUnit_]=obj.deviceNET.getPowerUnit;
+            switch meterPowerUnit_
+                case 0
+                    obj.meterPowerUnit='W';
+                case 1
+                    obj.meterPowerUnit='dBm';
+                otherwise
+                    warning('Unknown');
+            end
+            if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
+                [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
+                obj.meterVoltageUnit='V';
+            end
+        end
+        
+        
         
         function darkAdjust(obj)
             %DARKADJUST (PM400 Only) Initiate the Zero value measurement.
