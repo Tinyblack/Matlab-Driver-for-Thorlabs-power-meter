@@ -20,8 +20,7 @@ test_meter.setTimeout(1000);                                % Set timeout value
 for i=1:1:100   
     test_meter.updateReading(0.5);                          % Update the power reading(with interal period of 0.5s)
     fprintf('%.10f%c\r',test_meter.meterPowerReading,test_meter.meterPowerUnit);
-    test_meter.updateReading_V(0.5);                        % Update the power reading with voltage reading(with interal period of 0.5s)
-    fprintf('%.10f%c\r',test_meter.meterPowerReading,test_meter.meterPowerUnit);
-    fprintf('\t%.10f%c\r',test_meter.meterVoltageReading,test_meter.meterVoltageUnit);
 end
+test_meter.updateReading_V(0.5);                            % To demonstrate that only certain sensors can use this function
+                                                            % A warning message is expected here for most of the models
 test_meter.disconnect;                                      % Disconnect and release

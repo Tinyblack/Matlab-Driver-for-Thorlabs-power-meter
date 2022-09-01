@@ -5,3 +5,4 @@ Thorlabs_DotNet_dll\*.dll
 *.jpg
 *.pdf
 *.cpp
+*.old
