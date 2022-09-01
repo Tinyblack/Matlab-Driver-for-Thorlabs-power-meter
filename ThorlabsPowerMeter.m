@@ -5,47 +5,85 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
     %   DLLs.
     %
     %   User Instructions:
-    %   1. Download the Optical Power Monitor from the Thorlabs website:
-    %   https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=OPM
-    %   2. Read the manual in the installation folder or the sofware help page
-    %   https://www.thorlabs.com/software/MUC/OPM/v3.0/TL_OPM_V3.0_web-secured.pdf
-    %   3. Following the instructions in section 9: Write Your Own Application
-    %   4. This scripts need only the .net wrapper dll so follow the instruction for C#
-    %   5. Edit MOTORPATHDEFAULT below to point to the location of the DLLs
-    %   6. Connect your Power Meter with sensor to the PC USB port and power
-    %      it on.
+    %       1. Download the Optical Power Monitor from the Thorlabs website:
+    %       https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=OPM
+    %       [The latest version is 4.0.4100.700 - Accessed on 01 SEP 2022]
+    %
+    %       2. Read the manual in the installation folder or the sofware help page
+    %       https://www.thorlabs.com/software/MUC/OPM/v3.0/TL_OPM_V3.0_web-secured.pdf
+    %
+    %       3. Following the instructions in section 9: Write Your Own Application
+    %       The common path of the *.dll files on Windows is:
+    %       C:\Program Files\IVI Foundation\VISA\VisaCom64\Primary Interop Assemblies\Thorlabs.TLPM_64.Interop.dll
+    %
+    %       4. This scripts need only the .net wrapper dll so follow the instruction for C#/.Net
+    %
+    %       5. Edit MOTORPATHDEFAULT below to point to the location of the DLLs
+    %
+    %       6. Connect your Power Meter with sensor to the PC USB port and power it on.
+    %
+    %       7. Please refer to the examples provided
     %
     %   For developers:
     %   The definition for all the classes can be found in the C sharp exmple
     %   provided by Thorlab. (Shipped together with the software.)
     %
     %   Example:
+    %   close all
     %   clear
-    %   test_meter=ThorlabsPowerMeter;            % Initiate the object
-    %   DeviceDescription=test_meter.listdevices; % List available device(s)
-    %   test_meter.connect(DeviceDescription);    % Connect selected device
-    %   test_meter.setWaveLength(780);            % Set sensor wavelength
-    %   test_meter.setDispBrightness(0.5);        % Set display brightness
-    %   test_meter.setAttenuation(0);             % Set Attenuation
-    %   test_meter.sensorInfo;                    % Retrive the sensor info
-    %   test_meter.darkAdjust;                    % (PM400 ONLY)
-    %   test_meter.getDarkOffset;                 % (PM400 ONLY)
-    %   test_meter.updateReading;                 % Update the reading
-    %   test_meter.disconnect;                    % Disconnect and release
+    %   meter_list=ThorlabsPowerMeter;                              % Initiate the meter_list
+    %   DeviceDescription=meter_list.listdevices;               	% List available device(s)
+    %   test_meter=meter_list.connect(DeviceDescription);           % Connect single/the first devices
+    %   %or                                                         % Connect single/the first devices
+    %   %test_meter=meter_list.connect(DeviceDescription,1);        % Connect single/the first devices
+    %   test_meter.setWaveLength(635);                              % Set sensor wavelength
+    %   test_meter.setDispBrightness(0.3);                          % Set display brightness
+    %   test_meter.setAttenuation(0);                               % Set Attenuation
+    %   test_meter.sensorInfo;                                      % Retrive the sensor info
+    %   test_meter.setPowerAutoRange(1);                            % Set Autorange
+    %   % or
+    %   % test_meter.setPowerRange(0.01);                           % Set manual range
+    %   pause(5)                                                    % Pause the program a bit to allow the power meter to autoadjust
+    %   test_meter.setAverageTime(0.01);                            % Set average time for the measurement
+    %   test_meter.setTimeout(1000);                                % Set timeout value 
+    %   % test_meter.darkAdjust;                                      % (PM400 ONLY)
+    %   % test_meter.getDarkOffset;                                   % (PM400 ONLY)
+    %   for i=1:1:100   
+    %       test_meter.updateReading(0.5);                          % Update the power reading(with interal period of 0.5s)
+    %       fprintf('%.10f%c\r',test_meter.meterPowerReading,test_meter.meterPowerUnit);
+    %   end
+    %   test_meter.updateReading_V(0.5);                            % To demonstrate that only certain sensors can use this function
+    %                                                               % A warning message is expected here for most of the models
+    %   test_meter.disconnect;                                      % Disconnect and release
     %
     %   Author: Zimo Zhao
     %   Dept. Engineering Science, University of Oxford, Oxford OX1 3PJ, UK
     %   Email: zimo.zhao@eng.ox.ac.uk (please email issues and bugs)
     %   Website: https://eng.ox.ac.uk/smp/
+    %   GitHub: https://github.com/Tinyblack/Matlab-Driver-for-Thorlabs-power-meter
     %
-    %   Known Issues:
-    %   1. This program is not yet suitable for multiple power meters
-    %   connection.
-    %   2. More functions to be added in the future.
+    %   Initially Developed On:
+    %       Optical Power Monitor
+    %           Application 3.1.3778.562
+    %           TLPM__32 5.1.3754.327
+    %       Matlab
+    %           2020b
+    %   
+    %   Test pass:
+    %       Optical Power Monitor
+    %           Application 4.0.4100.700
+    %           TLPMX__32 5.3.4101.525
+    %       Matlab
+    %           2022a
     %
     %   Version History:
     %   1.00 ----- 21 May 2021 ----- Initial Release
     %   1.01 ----- 17 Aug 2021 ----- Clarify the way of utilizing *.dll files
+    %   2.00 ----- 27 Aug 2021 ----- Support multiple power meters connection
+    %   2.01 ----- 26 Sep 2021 ----- Add force connection function to bypass the device availability check.
+    %   3.00 ----- 01 Feb 2022 ----- Add functions: setPowerRange, setPowerAutoRange, setTimeout, setAverageTime, updateReading_V
+    %   3.10 ----- 01 SEP 2022 ----- Test the script on latest TLPM driver and MATLAB. Some bugs are corrected as well
+
     
     properties (Constant, Hidden)
         % Path to .net *.dll files (edit as appropriate)
@@ -56,7 +94,21 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
         METERPATHDEFAULT=[pwd '\Thorlabs_DotNet_dll\'];
         %METERPATHDEFAULT=['---Your---Own---Path---'];
         
-        % *.dll files to be loaded
+        %   *.dll files to be loaded
+        %
+        % NOTE
+        %   No significant difference was noticed between 
+        %   "Thorlabs.TLPMX_64.Interop.dll" and "Thorlabs.TLPM_64.Interop.dll"
+        %   But if you are going to use "Thorlabs.TLPMX_64.Interop.dll", please change 
+        %
+        %         TLPMDLL='Thorlabs.TLPM_64.Interop.dll';
+        %         TLPMCLASSNAME='Thorlabs.TLPM_64.Interop.TLPM';
+        %     
+        %     into
+        %         
+        %         TLPMDLL='Thorlabs.TLPMX_64.Interop.dll';
+        %         TLPMCLASSNAME='Thorlabs.TLPM_64.Interop.TLPMX';
+        %
         TLPMDLL='Thorlabs.TLPM_64.Interop.dll';
         TLPMCLASSNAME='Thorlabs.TLPM_64.Interop.TLPM';
     end
@@ -85,7 +137,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
         meterVoltageUnit;           % Voltage reading unit
     end
     
-    properties %(Hidden)
+    properties (Hidden)
         % These are properties within the .NET environment.
         deviceNET;                  % Device object within .NET
     end
@@ -147,7 +199,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                 Reset_Device (1,1) {mustBeNumeric} = 1 % (default) Reset
             end
             %obj.listdevices;
-            if ~obj.isConnected && obj.DeviceAvailable(resource_index)
+            if ~obj.isConnected
                 try
                     obj_copy=copy(obj);
                     % The core method to create the power meter instance
@@ -164,7 +216,12 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                     error('Failed to connect the device.');
                 end
             else
-                warning('Device is already connected.');
+                if obj.isConnected==1
+                    warning('Device is connected.');
+                end
+                if obj.DeviceAvailable(resource_index)==0
+                    warning('Device is not available.');
+                end
                 obj_copy=[];
             end
         end
@@ -474,10 +531,6 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                 otherwise
                     warning('Unknown');
             end
-%             if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
-%                 [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
-%                 obj.meterVoltageUnit='V';
-%             end
         end
         
         function updateReading_V(obj,period)
@@ -486,6 +539,7 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
             %   Retrive the reading from power meter and store it in the
             %   properties of the object
             %   Only for PM100D, PM100A, PM100USB, PM160T, PM200, PM400
+            %   ANd it only support certain sensors
             [~,obj.meterPowerReading]=obj.deviceNET.measPower;
             pause(period)
             [~,meterPowerUnit_]=obj.deviceNET.getPowerUnit;
@@ -498,8 +552,12 @@ classdef ThorlabsPowerMeter < matlab.mixin.Copyable
                     warning('Unknown');
             end
             if any(strcmp(obj.modelName,{'PM100D', 'PM100A', 'PM100USB', 'PM160T', 'PM200', 'PM400'}))
-                [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage;
-                obj.meterVoltageUnit='V';
+                try
+                    [~,obj.meterVoltageReading]=obj.deviceNET.measVoltage; 
+                    obj.meterVoltageUnit='V';
+                catch
+                    warning('Wrong sensor type for this operation');
+                end
             end
         end
         
