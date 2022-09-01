@@ -113,7 +113,6 @@ test_meter_B.disconnect;                                    % Disconnect and rel
 * GitHub: https://github.com/Tinyblack/Matlab-Driver-for-Thorlabs-power-meter
 * Reporting issues and bugs to my Github repository is more welcomed.
 
-
 ## Initially Developed On
 
 * Optical Power Monitor
