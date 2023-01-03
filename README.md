@@ -4,6 +4,10 @@
 
 This is a Matlab class to control Thorlabs power meters. (Multiple meters are supported)
 
+> For Python wrapper, please go the following page:
+>
+> * [GitHub Repository](https://github.com/Tinyblack/Python-Driver-for-Thorlabs-power-meter)
+
 [Link](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10562) to a typical Thorlabs Power Meter.
 
 ## User Instructions
@@ -113,6 +117,7 @@ test_meter_B.disconnect;                                    % Disconnect and rel
 * GitHub: https://github.com/Tinyblack/Matlab-Driver-for-Thorlabs-power-meter
 * Reporting issues and bugs to my Github repository is more welcomed.
 
+
 ## Initially Developed On
 
 * Optical Power Monitor
@@ -144,3 +149,5 @@ test_meter_B.disconnect;                                    % Disconnect and rel
 3.00 ----- 01 Feb 2022 ----- Add functions: setPowerRange, setPowerAutoRange, setTimeout, setAverageTime, updateReading_V.
 
 3.10 ----- 01 SEP 2022 ----- Test the script on latest TLPM driver and MATLAB. Some bugs are corrected as well.
+
+3.20 ----- 03 Jan 2023 ----- Update README about the similar Python scripts
